@@ -1,10 +1,13 @@
 from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from django.conf import settings
 from django.urls import reverse
 from django import forms
 
 from posts.models import Post, Group
+
 
 User = get_user_model()
 
@@ -23,7 +26,6 @@ class PostPagesTests(TestCase):
             author=cls.author,
             text='test_post',
             group=cls.group,
-            id=42,
         )
 
     def setUp(self):
@@ -51,18 +53,30 @@ class PostPagesTests(TestCase):
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
+    
+    def assert_post(self, first_object):
+        """Дублирующий код проверки постов.
+        """
+        self.assertEqual(first_object.text, self.post.text)
+        self.assertEqual(first_object.author.username, self.post.author.username)
+        self.assertEqual(first_object.group.title, self.group.title)
+        self.assertEqual(first_object.pk, self.post.pk)
 
     def test_index_page_show_correct_context(self):
         """Проверяем контекст(context) шаблона index.
         """
-        response = self.authorized_client.get(reverse('posts:index'))
+        response = self.authorized_client.get(
+            reverse('posts:index'))
         first_object = response.context['page_obj'][0]
-        index_text_0 = first_object.text
-        index_author_0 = first_object.author.username
-        index_group_0 = first_object.group.title
-        self.assertEqual(index_text_0, self.post.text)
-        self.assertEqual(index_author_0, self.post.author.username)
-        self.assertEqual(index_group_0, self.group.title)
+        self.assert_post(first_object)
+
+    def test_profile_page_show_correct_context(self):
+        """Проверяем контекст(context) шаблона profile.
+        """
+        response = (self.authorized_client.get(
+            reverse('posts:profile', kwargs={'username': self.author})))
+        first_object = response.context['page_obj'][0]
+        self.assert_post(first_object)
 
     def test_group_list_page_show_correct_context(self):
         """Проверяем контекст(context) шаблона group_list.
@@ -75,17 +89,8 @@ class PostPagesTests(TestCase):
             'group').description, self.group.description)
         self.assertEqual(response.context.get(
             'group').slug, self.group.slug)
-
-    def test_profile_page_show_correct_context(self):
-        """Проверяем контекст(context) шаблона profile.
-        """
-        response = (self.authorized_client.get(
-            reverse('posts:profile', kwargs={'username': self.author})))
-        first_object = response.context['page_obj'][0]
-        post_text_0 = first_object.text
-        self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(
-            response.context['author'].username, self.post.author.username)
+        self.assertEqual(response.context.get(
+            'group').pk, self.group.pk)
 
     def test_post_detail_page_show_correct_context(self):
         """Проверяем контекст(context) шаблона post_detail.
@@ -132,7 +137,6 @@ class PaginatorViewsTest(TestCase):
                 author=cls.author,
                 text=f'test_post {i}',
                 group=cls.group,
-                id=i,
             ))
         Post.objects.bulk_create(cls.posts)
 
@@ -146,11 +150,12 @@ class PaginatorViewsTest(TestCase):
         """
         response = self.authorized_client.get(
             reverse('posts:index'))
-        self.assertEqual(len(response.context['page_obj']), 10)
+        self.assertEqual(len(response.context['page_obj']), settings.MAX)
 
     def test_second_page_contains_ten_records(self):
         """Проверяем паджинатор(paginator) вторая страница.
         """
+        second_page = Post.objects.count() - settings.MAX
         response = self.authorized_client.get(
-            reverse('posts:index') + '?page=2')
-        self.assertEqual(len(response.context['page_obj']), 3)
+            reverse('posts:index') + f'?page={second_page}')
+        self.assertEqual(len(response.context['page_obj']), second_page)

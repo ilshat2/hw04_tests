@@ -38,6 +38,9 @@ class PostCreateFormTests(TestCase):
             Post.objects.count(),
             posts,
         )
+        text_queryset = Post.objects.filter(text='test_text_form')
+        text_queryset = str(text_queryset)
+        self.assertIn(form['text'], text_queryset)
 
     def test_edit_post(self):
         """Валидная форма редактирует запись в Post.
@@ -49,11 +52,11 @@ class PostCreateFormTests(TestCase):
         self.authorized_client.post(
             reverse('posts:post_edit', kwargs={'post_id': self.post.pk}),
             data=form,
-            follow=True
+            follow=True,
         )
         self.assertEqual(
             Post.objects.count(),
-            post
+            post,
         )
         self.post.refresh_from_db()
         self.assertEqual(

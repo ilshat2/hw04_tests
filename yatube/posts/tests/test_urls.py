@@ -1,7 +1,8 @@
+from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 
-from http import HTTPStatus
 from posts.models import Post, Group
 
 User = get_user_model()
@@ -29,29 +30,26 @@ class PostURLTests(TestCase):
         )
 
     def setUp(self) -> None:
-        self.guest_client = Client()
         self.user = User.objects.create_user(username='Vainamoinen')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
-    def test_index_url_exists_at_desired_location(self):
-        """Домашняя страница / доступна любому пользователю.
+    def test_urls_exists_at_desired_location(self):
+        """Доступность страниц '/', /group/zh/, /profile/Vainamoinen/,
+        /posts/1/ любому пользователю.
         """
-        response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_group_url_exists_at_desired_location(self):
-        """Созданная в setUpClass тестовая группа/страница
-        по адресу /group/zh/ доступна любому пользователю.
-        """
-        response = self.guest_client.get('/group/zh/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_posts_url_exists_at_desired_location(self):
-        """Страница /posts/1/ доступна любому пользователю.
-        """
-        response = self.guest_client.get('/posts/1/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        urls = {
+             '/',
+            f'/group/{self.group.slug}/',
+            f'/profile/{self.user}/',
+            f'/posts/{self.post.pk}/',
+        }
+        for adress in urls:
+            with self.subTest():
+                response = self.client.get(adress)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+                response = self.author_client.get(adress)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_url_exists_at_desired_location(self):
         """Страница /create/ доступна авторизованному пользователю.
@@ -63,20 +61,20 @@ class PostURLTests(TestCase):
         """Страница по адресу /create/ перенаправит анонимного
         пользователя на страницу логина.
         """
-        response = self.guest_client.get('/create/', follow=True)
+        response = self.client.get('/create/', follow=True)
         self.assertRedirects(
             response, '/auth/login/?next=/create/'
         )
 
     def test_private_url(self):
         """Без авторизации приватные URL недоступны."""
-        url_names = (
+        urls = (
             '/create/',
             '/admin/',
         )
-        for adress in url_names:
+        for adress in urls:
             with self.subTest():
-                response = self.guest_client.get(adress)
+                response = self.client.get(adress)
                 self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_urls_uses_correct_template(self):
@@ -98,5 +96,7 @@ class PostURLTests(TestCase):
         """Несуществующая страница (ошибка 404)
         доступна любому пользователю.
         """
-        response = self.guest_client.get('/unexisting_page/')
+        response = self.client.get('/unexisting_page/')
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        response = self.authorized_client.get('/unexisting_page/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
