@@ -39,7 +39,7 @@ class PostURLTests(TestCase):
         /posts/1/ любому пользователю.
         """
         urls = {
-             '/',
+            '/',
             f'/group/{self.group.slug}/',
             f'/profile/{self.user}/',
             f'/posts/{self.post.pk}/',

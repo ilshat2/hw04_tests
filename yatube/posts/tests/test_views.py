@@ -53,14 +53,18 @@ class PostPagesTests(TestCase):
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
-    
+
     def assert_post(self, first_object):
         """Дублирующий код проверки постов.
         """
-        self.assertEqual(first_object.text, self.post.text)
-        self.assertEqual(first_object.author.username, self.post.author.username)
-        self.assertEqual(first_object.group.title, self.group.title)
-        self.assertEqual(first_object.pk, self.post.pk)
+        self.assertEqual(
+            first_object.text, self.post.text)
+        self.assertEqual(
+            first_object.author.username, self.post.author.username)
+        self.assertEqual(
+            first_object.group.title, self.group.title)
+        self.assertEqual(
+            first_object.pk, self.post.pk)
 
     def test_index_page_show_correct_context(self):
         """Проверяем контекст(context) шаблона index.
