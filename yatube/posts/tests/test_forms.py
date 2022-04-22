@@ -38,9 +38,8 @@ class PostCreateFormTests(TestCase):
             Post.objects.count(),
             posts,
         )
-        text_queryset = Post.objects.filter(text='test_text_form')
-        text_queryset = str(text_queryset)
-        self.assertIn(form['text'], text_queryset)
+        post_object = Post.objects.latest('id').text
+        self.assertEqual(form['text'], post_object)
 
     def test_edit_post(self):
         """Валидная форма редактирует запись в Post.

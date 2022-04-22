@@ -23,7 +23,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'xn+49v3@o(o!pk$v=wnwi--35+ggfnjff(g==^f&t_*f99qmx)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
+# DEBUG=False - режим отладки отключен,
+# DEBUG=True - сайт в режим разработки
 DEBUG = True
+
+# Имя view-функции, обрабатывающей ошибку 403
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -43,7 +49,8 @@ INSTALLED_APPS = [
     'posts.apps.PostsConfig',  # Добавленная запись
     'users.apps.UsersConfig',  # Приложение users
     'core.apps.CoreConfig',  # Приложение core
-    'about.apps.AboutConfig'  # Приложение about
+    'about.apps.AboutConfig',  # Приложение about
+    'sorl.thumbnail',  # Установиленное приложение sorl-thumbnail
 ]
 
 MIDDLEWARE = [

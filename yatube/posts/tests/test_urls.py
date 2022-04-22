@@ -66,6 +66,12 @@ class PostURLTests(TestCase):
             response, '/auth/login/?next=/create/'
         )
 
+    def test_posts_edit_url_exists_at_desired_location(self):
+        """Страница '/posts/{self.post.pk}/edit/' доступна автору.
+        """
+        response = self.author_client.get(f'/posts/{self.post.pk}/edit/')
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_private_url(self):
         """Без авторизации приватные URL недоступны."""
         urls = (
@@ -83,8 +89,8 @@ class PostURLTests(TestCase):
         """
         templates_url_names = {
             '/': 'posts/index.html',
-            '/group/zh/': 'posts/group_list.html',
-            '/profile/Vainamoinen/': 'posts/profile.html',
+            f'/group/{self.group.slug}/': 'posts/group_list.html',
+            f'/profile/{self.user}/': 'posts/profile.html',
             '/create/': 'posts/create_post.html',
         }
         for address, template in templates_url_names.items():

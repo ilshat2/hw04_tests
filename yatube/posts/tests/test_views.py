@@ -109,6 +109,8 @@ class PostPagesTests(TestCase):
         """
         response = self.authorized_client.get(
             reverse('posts:post_edit', kwargs={'post_id': self.post.pk}))
+        self.assertEqual(response.context.get(
+            'post').id, self.post.pk)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertTemplateUsed(response, 'posts/create_post.html')
 
