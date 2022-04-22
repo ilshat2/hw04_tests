@@ -62,7 +62,11 @@ class PostPagesTests(TestCase):
         self.assertEqual(
             first_object.author.username, self.post.author.username)
         self.assertEqual(
+            first_object.author.pk, self.post.author.pk)
+        self.assertEqual(
             first_object.group.title, self.group.title)
+        self.assertEqual(
+            first_object.group.pk, self.group.pk)
         self.assertEqual(
             first_object.pk, self.post.pk)
 

@@ -38,7 +38,8 @@ class PostCreateFormTests(TestCase):
             Post.objects.count(),
             posts,
         )
-        post_object = Post.objects.latest('id').text
+        post_object = Post.objects.get(pk=posts)
+        post_object = str(post_object)
         self.assertEqual(form['text'], post_object)
 
     def test_edit_post(self):
